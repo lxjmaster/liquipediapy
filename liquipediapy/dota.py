@@ -95,11 +95,12 @@ class dota():
 		if results:
 			parse_value = teamName + "/Results"
 			try:
-				soup,__ = self.liquipedia.parse(parse_value)
+				soup, __ = self.liquipedia.parse(parse_value)
+				team['results'] = team_object.get_team_achivements(soup)
 			except ex.RequestsException:
 				team['results'] = []
-			else:	
-				team['results'] = team_object.get_team_achivements(soup)
+		else:
+			team['results'] = team_object.get_team_achivements(soup)
 
 		return team	
 
@@ -209,7 +210,7 @@ class dota():
 
 		return patches		
 		
-			
+
 	def get_tournaments(self,tournamentType=None):
 		tournaments = []
 		if tournamentType is None:

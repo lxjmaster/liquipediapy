@@ -10,7 +10,7 @@ class Leagueoflegends(object):
     def __init__(self, appname):
 
         self.appname = appname
-        self.liquipedia = liquipediapy(appname, "leagueoflegends")
+        self.liquipedia = Liquipediapy(appname, "leagueoflegends")
         self.__image_base_url = "https://liquipedia.net'"
 
     def get_players(self):
@@ -81,7 +81,88 @@ class Leagueoflegends(object):
 
     def get_tournaments(self, tournament_type=None):
 
-        pass
+        tournaments = []
+        if tournament_type is None:
+            page_val = 'Portal:Tournaments'
+        elif tournament_type == 'Show Matches':
+            page_val = 'Show_Matches'
+        else:
+            page_val = tournament_type + '_Tournaments'
+
+        soup, __ = self.liquipedia.parse(page_val)
+        div_rows = soup.find_all('div', {"class": "divRow"})
+
+        for row in div_rows:
+            tournament = {}
+            values = row.find('div', {"class": re.compile("divCell Tournament Header")})
+            if tournament_type is None:
+                tournament['tier'] = values.a.get_text()
+                tournament['name'] = values.b.get_text()
+            else:
+                tournament['tier'] = tournament_type
+                tournament['name'] = values.b.get_text()
+
+            try:
+                tournament['logo'] = self.__image_base_url + \
+                                     row.find('div', {"class": re.compile("divCell Tournament Header")}).find('img').get('src')
+            except AttributeError:
+                tournament['logo'] = ""
+
+            try:
+                tournament['page'] = self.__image_base_url + values.b.a['href']
+            except AttributeError:
+                tournament['page'] = ""
+
+            try:
+                tournament['date'] = row.find('div', {"class": re.compile("divCell EventDetails Date Header")}).get_text().strip()
+            except AttributeError:
+                tournament['date'] = ""
+
+            try:
+                tournament['prize'] = row.find(
+                    'div',
+                    {"class": re.compile("divCell EventDetails Prize Header")}
+                ).get_text().rstrip()
+            except (AttributeError, ValueError):
+                tournament['prize'] = ""
+
+            try:
+                tournament['team_number'] = re.sub(
+                    '[A-Za-z]',
+                    '',
+                    row.find('div', {"class": re.compile("divCell EventDetails PlayerNumber Header")}).get_text()
+                ).rstrip()
+            except AttributeError:
+                tournament['team_number'] = ""
+
+            try:
+                location_list = unicodedata.normalize(
+                    "NFKD",
+                    row.find(
+                        'div',
+                        {"class": re.compile("divCell EventDetails Location Header")}
+                    ).find_all("span", attrs={"class": False}).get_text().strip()
+                ).split(',')
+
+                if len(location_list) > 0:
+                    tournament['location'] = location_list
+                else:
+                    tournament['location'] = []
+            except AttributeError:
+                tournament['location'] = []
+
+            winner = row.find('div', {"class": re.compile("divCell Placement FirstPlace")})
+
+            if winner:
+                tournament['winner'] = winner.get_text().strip()
+                tournament['runner_up'] = row.find('div', {"class": re.compile("divCell Placement SecondPlace")}).get_text().strip()
+            else:
+                tournament['winner'] = "TBD"
+                tournament['runner_up'] = "TBD"
+
+            tournaments.append(tournament)
+
+        return tournaments
 
     def get_tournament_info(self):
 

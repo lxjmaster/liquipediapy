@@ -1,5 +1,5 @@
 import liquipediapy.exceptions as ex
-from liquipediapy.liquipediapy import liquipediapy
+from liquipediapy.liquipediapy import Liquipediapy
 from liquipediapy.leagueoflegends_modules.team import LeagueoflegendsTeam
 import unicodedata
 import re

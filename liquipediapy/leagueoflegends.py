@@ -178,4 +178,5 @@ class Leagueoflegends(object):
         tournament = {}
         tournament["info"] = tournament_object.get_tournament_infobox(soup)
         tournament["overview"] = tournament_object.get_overview(soup)
+        tournament["format"] = tournament_object.get_format(soup)
 

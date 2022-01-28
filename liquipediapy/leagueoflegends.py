@@ -1,6 +1,7 @@
 import liquipediapy.exceptions as ex
 from liquipediapy.liquipediapy import Liquipediapy
 from liquipediapy.leagueoflegends_modules.team import LeagueoflegendsTeam
+from liquipediapy.leagueoflegends_modules.tournament import LeagueoflegendsTournament
 import unicodedata
 import re
 
@@ -59,6 +60,8 @@ class Leagueoflegends(object):
                 team["history"] = ""
         else:
             team["history"] = team_object.get_history(soup)
+
+        team["timeline"] = team_object.get_team_timeline(soup)
 
         # if history:
         #     parse_value = team_name + "/History"
@@ -155,7 +158,10 @@ class Leagueoflegends(object):
 
             if winner:
                 tournament['winner'] = winner.get_text().strip()
-                tournament['runner_up'] = row.find('div', {"class": re.compile("divCell Placement SecondPlace")}).get_text().strip()
+                tournament['runner_up'] = row.find(
+                    'div',
+                    {"class": re.compile("divCell Placement SecondPlace")}
+                ).get_text().strip()
             else:
                 tournament['winner'] = "TBD"
                 tournament['runner_up'] = "TBD"
@@ -164,6 +170,12 @@ class Leagueoflegends(object):
 
         return tournaments
 
-    def get_tournament_info(self):
+    def get_tournament_info(self, tournament_page):
 
-        pass
+        tournament_object = LeagueoflegendsTournament(tournament_page)
+        soup, __ = self.liquipedia.parse(tournament_page)
+
+        tournament = {}
+        tournament["info"] = tournament_object.get_tournament_infobox(soup)
+        tournament["overview"] = tournament_object.get_overview(soup)
+

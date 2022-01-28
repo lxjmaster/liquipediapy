@@ -84,8 +84,55 @@ class LeagueoflegendsTeam(object):
 
         return history_link
 
-    def get_history(self, soup):
+    @staticmethod
+    def get_history(soup):
 
+        history_text = ""
+        history_p = []
         history_title = soup.find("span", {"id": "History"})
         if history_title:
-            history = history_title.parent
+            histories = history_title.parent.next_siblings
+            for history in histories:
+                if history.name == "p":
+                    history_p.append(history)
+                elif history.name in ["h1", "h2", "h3", "h4"]:
+                    break
+
+        for p in history_p:
+            history_text += p.get_text()
+
+        return history_text
+
+    @staticmethod
+    def get_link_history(soup):
+
+        history_text = ""
+        history_elements = []
+
+        ad_element = soup.find("div", {"class": "content-ad"})
+        if ad_element:
+            elements = ad_element.previous_siblings
+            for element in elements:
+                if element.name is not None:
+                    if element.name == "p":
+                        history_elements.append(element)
+                    else:
+                        if len(history_elements) > 0 and history_elements[-1].name == "p":
+                            history_elements.append(element)
+
+        if len(history_elements) > 0:
+            history_elements.reverse()
+
+        for history in history_elements:
+            history_text += history.get_text() + "\n"
+
+        return history_text.replace("[edit]", "").strip()
+
+    @staticmethod
+    def get_team_timeline(soup):
+
+        timeline = []
+        timeline_title = soup.find("span", {"id": "Timeline"})
+        if timeline_title:
+            timeline_element = timeline_title.parent.next_sibling
+

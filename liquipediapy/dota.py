@@ -97,11 +97,11 @@ class Dota(object):
 			parse_value = teamName + "/Results"
 			try:
 				soup, __ = self.liquipedia.parse(parse_value)
-				team['results'] = team_object.get_team_achivements(soup)
+				team['results'] = team_object.get_team_achievements(soup)
 			except ex.RequestsException:
 				team['results'] = []
 		else:
-			team['results'] = team_object.get_team_achivements(soup)
+			team['results'] = team_object.get_team_achievements(soup)
 
 		return team	
 

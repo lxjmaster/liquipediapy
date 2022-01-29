@@ -12,7 +12,7 @@ class Leagueoflegends(object):
 
         self.appname = appname
         self.liquipedia = Liquipediapy(appname, "leagueoflegends")
-        self.__image_base_url = "https://liquipedia.net'"
+        self.__image_base_url = "https://liquipedia.net"
 
     def get_players(self):
 
@@ -179,4 +179,7 @@ class Leagueoflegends(object):
         tournament["info"] = tournament_object.get_tournament_infobox(soup)
         tournament["overview"] = tournament_object.get_overview(soup)
         tournament["format"] = tournament_object.get_format(soup)
+        tournament["prize_pool"] = tournament_object.get_prize_pool(soup)
+        tournament["participants"] = tournament_object.get_participants(soup)
 
+        return tournament

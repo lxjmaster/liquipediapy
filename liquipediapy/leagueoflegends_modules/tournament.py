@@ -1,3 +1,4 @@
+import re
 from urllib.parse import quote
 import unicodedata
 
@@ -10,6 +11,11 @@ class LeagueoflegendsTournament(object):
         self.page = page
 
     def get_tournament_infobox(self, soup):
+        """
+        获取infobox的数据
+        :param soup:
+        :return:
+        """
 
         tournament = {}
         try:
@@ -55,6 +61,11 @@ class LeagueoflegendsTournament(object):
 
     @staticmethod
     def get_overview(soup):
+        """
+        获取简介
+        :param soup:
+        :return:
+        """
 
         tournament = {}
         try:
@@ -78,7 +89,13 @@ class LeagueoflegendsTournament(object):
 
         return tournament
 
-    def get_format(self, soup):
+    @staticmethod
+    def get_format(soup):
+        """
+        获取赛制
+        :param soup:
+        :return:
+        """
 
         tournament = {}
         try:
@@ -96,6 +113,92 @@ class LeagueoflegendsTournament(object):
             tournament["format"] = format_text
         except AttributeError:
             tournament["format"] = ""
+
+        return tournament
+
+    def get_prize_pool(self, soup):
+        """
+        获取奖金池
+        :param soup:
+        :return:
+        """
+
+        tournament = {}
+        try:
+            titles = []
+            tables = []
+            logos = []
+
+            # 奖金池表格
+            prize_pool_table_element = soup.find("table", {"class": "table table-bordered prizepooltable collapsed"})
+
+            # 队伍的logo链接
+            logo_elements = prize_pool_table_element.find_all("span", {"class": "team-template-lightmode"})
+            for logo_element in logo_elements:
+                logos.append(self.__image_base_url + logo_element.a.img["src"])
+
+            prize_pool_table_rows = prize_pool_table_element.find_all("tr")
+
+            # 先获取表头
+            table_title_element = prize_pool_table_rows[0]
+            for table_title in table_title_element:
+                if len(title := list(table_title.stripped_strings)) > 0:
+                    titles.append("".join(title))
+
+            # 表格数据
+            table_rows = []
+            for table_row in prize_pool_table_rows[1:]:
+                row = []
+                cells = table_row.find_all("td")
+                for cell in cells:
+                    if cell.find("img", {"src": re.compile("GreenCheck.png")}):
+                        row.append("晋级")
+                    else:
+                        row.append("".join(list(cell.stripped_strings)))
+
+                table_rows.append(row)
+
+            for table_row in table_rows:
+                if len(table_row) == len(titles):
+                    tables.append(table_row)
+                else:
+                    if len(table_row) == 1:
+                        tables.append(tables[-1][:-1] + table_row)
+                    else:
+                        raise ValueError("奖池解析错误")
+
+            tournament["prize_pool"] = {
+                "titles": titles,
+                "tables": tables,
+                "team_logos": logos
+            }
+        except AttributeError:
+            tournament["prize_pool"] = {}
+
+        return tournament
+
+    def get_participants(self, soup):
+        """
+        获取参赛队伍
+        :param soup:
+        :return:
+        """
+
+        tournament = {}
+        try:
+            teams = []
+            team_card_elements = soup.find_all("div", {"class": "teamcard toggle-area toggle-area-1"})
+            for team_card_element in team_card_elements:
+                team_name = team_card_element.center.a.get_text()
+                team_logo = team_card_element.find("span", {"class": "logo-lightmode"}).img["src"]
+                teams.append({
+                    "team_name": team_name,
+                    "team_logo": self.__image_base_url + team_logo
+                })
+
+            tournament["participants"] = teams
+        except AttributeError:
+            tournament["participants"] = []
 
         return tournament
 

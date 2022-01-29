@@ -10,7 +10,14 @@ class Liquipediapy(object):
 
 		self.appname = appname
 		self.game = game
-		self.__headers = {'User-Agent': appname, 'Accept-Encoding': 'gzip'}
+		# self.__headers = {'User-Agent': appname, 'Accept-Encoding': 'gzip'}
+		self.__headers = {
+			"Host": "liquipedia.net",
+			"Origin": "https://liquipedia.net",
+			"Referer": "https://liquipedia.net/leagueoflegends/",
+			'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36",
+			'Accept-Encoding': 'gzip'
+		}
 		self.__base_url = 'https://liquipedia.net/' + game + '/api.php?'
 
 	def parse(self, page):

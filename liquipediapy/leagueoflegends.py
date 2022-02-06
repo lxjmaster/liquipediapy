@@ -54,8 +54,8 @@ class Leagueoflegends(object):
         if history_link:
             parse_value = team_name + "/History"
             try:
-                soup, __ = self.liquipedia.parse(parse_value)
-                team["history"] = team_object.get_link_history(soup)
+                soup_tmp, __ = self.liquipedia.parse(parse_value)
+                team["history"] = team_object.get_link_history(soup_tmp)
             except ex.RequestsException:
                 team["history"] = ""
         else:

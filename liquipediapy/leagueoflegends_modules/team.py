@@ -134,5 +134,7 @@ class LeagueoflegendsTeam(object):
         timeline = []
         timeline_title = soup.find("span", {"id": "Timeline"})
         if timeline_title:
-            timeline_element = timeline_title.parent.next_sibling
+            timeline_element = timeline_title.parent.next_siblings
+            for t in timeline_element:
+                print(t.name)
 

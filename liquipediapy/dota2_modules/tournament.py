@@ -3,7 +3,7 @@ import unicodedata
 from bs4 import BeautifulSoup
 
 
-class LeagueoflegendsTournament(object):
+class Dota2Tournament(object):
 
     def __init__(self, page):
 
@@ -60,14 +60,16 @@ class LeagueoflegendsTournament(object):
                 else:
                     new_soup = BeautifulSoup(str(info_boxes[i + 1]).replace("<br/>", "\n"), "lxml")
                     tournament[attribute.lower().replace(" ", "_")] = new_soup.get_text().split("\n")
-            elif attribute in ["Series", "Game Version", "Venue"]:
+            elif attribute in ["Series", "Version", "Venue"]:
                 # text = ""
                 # values = info_boxes[i + 1].find_all("a")
                 # for value in values:
                 #     text += value.get_text().strip().replace("\xa0", " ")
 
                 tournament[attribute.lower().replace(" ", "_")] = info_boxes[i + 1].get_text().strip().replace("\xa0", " ")
-            elif attribute in ["Type", "Format", "Number of Teams", "Prize Pool", "Start Date", "End Date"]:
+            elif attribute in [
+                "Type", "Format", "Teams", "Prize Pool", "Dates", "End Date", "Dota TV Ticket", "Pro Circuit Points"
+            ]:
                 tournament[attribute.lower().replace(" ", "_")] = \
                     info_boxes[i + 1].get_text().strip().replace("\xa0", " ")
             else:
@@ -147,7 +149,7 @@ class LeagueoflegendsTournament(object):
             logos = []
 
             # 奖金池表格
-            prize_pool_table_element = soup.find("table", {"class": "table table-bordered prizepooltable collapsed"})
+            prize_pool_table_element = soup.find("table", {"class": "wikitable wikitable-bordered prizepooltable collapsed"})
 
             # 队伍的logo链接
             logo_elements = prize_pool_table_element.find_all("span", {"class": "team-template-lightmode"})
@@ -161,7 +163,7 @@ class LeagueoflegendsTournament(object):
             for table_title in table_title_element:
                 if table_title.name is not None:
                     title = list(table_title.stripped_strings)
-                    titles.append("".join(title))
+                    titles.append(" ".join(title))
 
             # 表格数据
             table_rows = []
@@ -209,7 +211,8 @@ class LeagueoflegendsTournament(object):
             for team_card_element in team_card_elements:
                 team_name = team_card_element.center.a.get_text()
                 try:
-                    team_logo = self.__image_base_url + team_card_element.find("span", {"class": "logo-lightmode"}).img["src"]
+                    team_logo = self.__image_base_url + team_card_element.find("span", {"class": "logo-lightmode"}).img[
+                        "src"]
                 except TypeError:
                     team_logo = ""
 
@@ -223,5 +226,3 @@ class LeagueoflegendsTournament(object):
             tournament["participants"] = []
 
         return tournament
-
-

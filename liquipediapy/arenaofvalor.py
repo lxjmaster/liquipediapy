@@ -1,16 +1,16 @@
 import liquipediapy.exceptions as ex
 from liquipediapy.liquipediapy import Liquipediapy
-from liquipediapy.leagueoflegends_modules.team import LeagueoflegendsTeam
-from liquipediapy.leagueoflegends_modules.tournament import LeagueoflegendsTournament
+# from liquipediapy.arenaofvalor_modules.team import ArenaOfValorTeam
+from liquipediapy.arenaofvalor_modules.tournament import ArenaOfValorTournament
 import unicodedata
 import re
 
 
-class Leagueoflegends(object):
+class ArenaOfValor(object):
 
     def __init__(self):
 
-        self.liquipedia = Liquipediapy("leagueoflegends")
+        self.liquipedia = Liquipediapy("arenaofvalor")
         self.__image_base_url = "https://liquipedia.net"
 
     def get_players(self):
@@ -38,7 +38,7 @@ class Leagueoflegends(object):
 
     def get_team_info(self, team_name, results=False):
 
-        team_object = LeagueoflegendsTeam(team_name)
+        team_object = ArenaOfValorTeam(team_name)
         team_name = team_object.process_team_name(team_name)
         soup, redirect_value = self.liquipedia.parse(team_name)
         if redirect_value is not None:
@@ -89,7 +89,7 @@ class Leagueoflegends(object):
         if tournament_type is None:
             page_val = 'Portal:Tournaments'
         elif tournament_type == 'Show Matches':
-            page_val = 'Show_Matches'
+            page_val = 'Show_Match_Tournaments'
         elif tournament_type == "Recent Results":
             page_val = "Recent_Results"
         else:
@@ -120,14 +120,17 @@ class Leagueoflegends(object):
                 tournament['page'] = ""
 
             try:
-                tournament['date'] = row.find('div', {"class": re.compile("divCell EventDetails Date Header")}).get_text().strip()
+                tournament['date'] = row.find(
+                    'div',
+                    {"class": re.compile("divCell EventDetails-Left-55 Header")}
+                ).get_text().strip()
             except AttributeError:
                 tournament['date'] = ""
 
             try:
                 tournament['prize'] = row.find(
                     'div',
-                    {"class": re.compile("divCell EventDetails Prize Header")}
+                    {"class": re.compile("divCell EventDetails-Right-45 Header")}
                 ).get_text().rstrip()
             except (AttributeError, ValueError):
                 tournament['prize'] = ""
@@ -138,7 +141,7 @@ class Leagueoflegends(object):
                     '',
                     row.find(
                         'div',
-                        {"class": re.compile("divCell EventDetails PlayerNumber Header")}
+                        {"class": re.compile("divCell EventDetails-Right-40 Header")}
                     ).get_text()).rstrip()
             except AttributeError:
                 tournament['team_number'] = ""
@@ -227,13 +230,13 @@ class Leagueoflegends(object):
 
     def get_tournament_info(self, tournament_page):
 
-        tournament_object = LeagueoflegendsTournament(tournament_page)
+        tournament_object = ArenaOfValorTournament(tournament_page)
         soup, __ = self.liquipedia.parse(tournament_page)
 
         tournament = dict()
         tournament.update(
             {
-                "page": f"{self.__image_base_url}/leagueoflegends/{tournament_page}",
+                "page": f"{self.__image_base_url}/arenaofvalor/{tournament_page}",
                 "info": tournament_object.get_tournament_infobox(soup),
             }
         )

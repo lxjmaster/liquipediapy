@@ -1,17 +1,17 @@
 import liquipediapy.exceptions as ex
 from liquipediapy.liquipediapy import Liquipediapy
 import re
-from liquipediapy.dota_modules.player import dota_player
-from liquipediapy.dota_modules.team import DotaTeam
-from liquipediapy.dota_modules.pro_circuit import dota_pro_circuit
+from liquipediapy.dota2_modules.player import dota_player
+from liquipediapy.dota2_modules.team import DotaTeam
+from liquipediapy.dota2_modules.pro_circuit import dota_pro_circuit
+from liquipediapy.dota2_modules.tournament import Dota2Tournament
 import unicodedata
 
 
-class Dota(object):
+class Dota2(object):
 
-	def __init__(self, appname):
-		self.appname = appname
-		self.liquipedia = Liquipediapy(appname,'dota2')
+	def __init__(self):
+		self.liquipedia = Liquipediapy('dota2')
 		self.__image_base_url = 'https://liquipedia.net'
 
 	def get_players(self):
@@ -216,58 +216,153 @@ class Dota(object):
 
 		return patches		
 
-	def get_tournaments(self, tournamentType=None):
+	def get_tournaments(self, tournament_type=None):
 
 		tournaments = []
-		if tournamentType is None:
+		if tournament_type is None:
 			page_val = 'Portal:Tournaments'
-		elif tournamentType == 'Show Matches':
+		elif tournament_type == 'Show Matches':
 			page_val = 'Show_Matches'
+		elif tournament_type == "Recent Results":
+			page_val = "Recent_Tournament_Results"
 		else:
-			page_val = tournamentType.capitalize()+'_Tournaments'				
+			page_val = tournament_type.capitalize() + '_Tournaments'
 		soup, __ = self.liquipedia.parse(page_val)
-		div_rows = soup.find_all('div', class_="divRow")
+		div_rows = soup.find_all('div', {"class": "divRow"})
 		for row in div_rows:
-			tournament = {}
+			tournament = {"status": "Normal"}
 			values = row.find('div', class_="divCell Tournament Header")
-			if tournamentType is None:
+			if tournament_type is None:
 				tournament['tier'] = values.a.get_text()
 				tournament['name'] = values.b.get_text()
 			else:
-				tournament['tier'] = tournamentType
+				tournament['tier'] = tournament_type
 
 			try:
-				tournament['icon'] = self.__image_base_url+row.find('div', class_="divCell Tournament Header").find('img').get('src')
+				tournament['logo'] = self.__image_base_url + row.find('div', {"class": "divCell Tournament Header"}).find('img').get('src')
 			except AttributeError:
-				pass
+				tournament['logo'] = ""
 
 			try:
 				tournament['page'] = self.__image_base_url + values.b.a['href']
 			except AttributeError:
-				pass
-
-			tournament['dates'] = row.find('div',class_="divCell EventDetails Date Header").get_text().strip()
+				tournament['page'] = ""
 
 			try:
-				tournament['prize_pool'] = int(row.find('div',class_="divCell EventDetails Prize Header").get_text().rstrip().replace('$', '').replace(',', ''))
+				tournament['date'] = row.find('div', {"class": "divCell EventDetails Date Header"}).get_text().strip()
+			except AttributeError:
+				tournament['date'] = ""
+
+			try:
+				tournament['prize'] = row.find(
+					'div',
+					{"class": re.compile("divCell EventDetails Prize Header")}).get_text().rstrip()
 			except (AttributeError, ValueError):
-				tournament['prize_pool'] = 0
+				tournament['prize'] = ""
 
-			tournament['teams'] = re.sub('[A-Za-z]', '', row.find('div', class_="divCell EventDetails PlayerNumber Header").get_text()).rstrip()
-			location_list = unicodedata.normalize("NFKD", row.find('div', class_="divCell EventDetails Location Header").get_text().strip()).split(',')
-			tournament['host_location'] = location_list[0]
+			try:
+				tournament['team_number'] = re.sub(
+					'[A-Za-z]',
+					'',
+					row.find(
+						'div',
+						{"class": re.compile("divCell EventDetails PlayerNumber Header")}
+					).get_text()).rstrip()
+			except AttributeError:
+				tournament['team_number'] = ""
 
-			winner = row.find('div', class_="divCell Placement FirstPlace")
+			# location_list = unicodedata.normalize(
+			# 	"NFKD",
+			# 	row.find(
+			# 		'div',
+			# 		{"class": "divCell EventDetails Location Header"}
+			# 	).get_text().strip()).split(',')
+			# tournament['host_location'] = location_list[0]
+
+			winner = row.find('div', {"class": re.compile("divCell Placement FirstPlace")})
+
 			if winner:
-				tournament['winner'] = winner.get_text().strip()
-				tournament['runner_up'] = row.find('div', class_="divCell Placement SecondPlace").get_text().strip()
+				try:
+					winner_team = dict()
+					winner_span = winner.find(
+						"span",
+						{"class": re.compile("team-template-lightmode")}
+					)
+					team_short_name = winner.get_text().strip()
+					team_name = winner_span.a["title"]
+					team_logo_url = self.__image_base_url + winner_span.img["src"]
+					team_page = self.__image_base_url + winner_span.a["href"]
+
+					winner_team.update({
+						"name": team_name,
+						"short_name": team_short_name,
+						"logo": team_logo_url,
+						"page": team_page
+					})
+
+					tournament['winner'] = winner_team
+				except AttributeError:
+					# 如果该场比赛取消，标注一下
+					winner_text = winner.get_text()
+					if winner_text == "Cancelled":
+						tournament["status"] = winner_text
+
+					tournament['winner'] = {}
 			else:
-				tournament['winner'] = "TBD"
-				tournament['runner_up'] = "TBD"
+				tournament['winner'] = {}
+
+			runner_up = row.find(
+				'div',
+				{"class": re.compile("divCell Placement SecondPlace")}
+			)
+			if runner_up:
+				try:
+					runner_up_team = dict()
+					runner_up_span = runner_up.find(
+						"span",
+						{"class": re.compile("team-template-lightmode")}
+					)
+
+					team_short_name = runner_up.get_text().strip()
+					team_name = runner_up_span.a["title"]
+					team_logo_url = self.__image_base_url + runner_up_span.img["src"]
+					team_page = self.__image_base_url + runner_up_span.a["href"]
+
+					runner_up_team.update({
+						"name": team_name,
+						"short_name": team_short_name,
+						"logo": team_logo_url,
+						"page": team_page
+					})
+
+					tournament['runner_up'] = runner_up_team
+				except AttributeError:
+					tournament['runner_up'] = {}
+			else:
+				tournament['runner_up'] = {}
 
 			tournaments.append(tournament)
 
 		return tournaments
+
+	def get_tournament_info(self, tournament_page):
+
+		tournament_object = Dota2Tournament(tournament_page)
+		soup, __ = self.liquipedia.parse(tournament_page)
+
+		tournament = dict()
+		tournament.update(
+			{
+				"page": f"{self.__image_base_url}/dota2/{tournament_page}",
+				"info": tournament_object.get_tournament_infobox(soup),
+			}
+		)
+		tournament.update(tournament_object.get_overview(soup))
+		tournament.update(tournament_object.get_format(soup))
+		tournament.update(tournament_object.get_prize_pool(soup))
+		tournament.update(tournament_object.get_participants(soup))
+
+		return tournament
 
 	def get_tournament_banner(self, tournament_page):
 

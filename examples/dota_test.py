@@ -1,24 +1,26 @@
-from liquipediapy import dota
+from liquipediapy import Dota2
 
-dota_obj = dota("appname")
+dota_obj = Dota2()
 
-players = dota_obj.get_players()
+# players = dota_obj.get_players()
+#
+# player_details = dota_obj.get_player_info('Miracle-',True)
+#
+# team_details = dota_obj.get_team_info('Team Liquid',True)
+#
+# transfers = dota_obj.get_transfers()
+#
+# games = dota_obj.get_upcoming_and_ongoing_games()
+#
+# heros = dota_obj.get_heros()
+#
+# items = dota_obj.get_items()
+#
+# patches = dota_obj.get_patches()
 
-player_details = dota_obj.get_player_info('Miracle-',True)
+# tournaments = dota_obj.get_tournaments()
 
-team_details = dota_obj.get_team_info('Team Liquid',True)
+tournament = dota_obj.get_tournament_info("WePlay/AniMajor/2021")
 
-transfers = dota_obj.get_transfers()
-
-games = dota_obj.get_upcoming_and_ongoing_games()
-
-heros = dota_obj.get_heros()
-
-items = dota_obj.get_items()
-
-patches = dota_obj.get_patches()
-
-tournaments = dota_obj.get_tournaments()
-
-pro_circuit_details = dota_obj.get_pro_circuit_details()
+# pro_circuit_details = dota_obj.get_pro_circuit_details()
 

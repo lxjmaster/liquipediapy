@@ -18,3 +18,5 @@ https://liquipedia.net/leagueoflegends/api.php?action=query&format=json&prop=ext
         ]
     }
 }
+
+1. get_tournaments location获取失败 【已去除】

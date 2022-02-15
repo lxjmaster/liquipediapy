@@ -3,7 +3,7 @@ import unicodedata
 from bs4 import BeautifulSoup
 
 
-class ArenaOfValorTournament(object):
+class WildRiftTournament(object):
 
     def __init__(self, page):
 
@@ -218,18 +218,22 @@ class ArenaOfValorTournament(object):
             teams = []
             team_card_elements = soup.find_all("div", {"class": "teamcard toggle-area toggle-area-1"})
             for team_card_element in team_card_elements:
-                team_name = team_card_element.center.a.get_text()
-                try:
-                    team_logo = self.__image_base_url + team_card_element.find("span", {"class": "logo-lightmode"}).img["src"]
-                except TypeError:
-                    team_logo = ""
+                team_name_element_a = team_card_element.center.find_all("a")
+                team_name_element = [element for element in team_name_element_a if not element.find("img")]
+                if len(team_name_element) == 1:
+                    team_name_element = team_name_element[0]
+                    team_name = team_name_element.get_text()
+                    try:
+                        team_logo = self.__image_base_url + team_card_element.find("span", {"class": "logo-lightmode"}).img["src"]
+                    except TypeError:
+                        team_logo = ""
 
-                teams.append({
-                    "team_name": team_name,
-                    "team_logo": team_logo
-                })
+                    teams.append({
+                        "team_name": team_name,
+                        "team_logo": team_logo
+                    })
 
-            tournament["participants"] = teams
+                tournament["participants"] = teams
         except AttributeError:
             tournament["participants"] = []
 

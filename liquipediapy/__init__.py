@@ -4,3 +4,4 @@ from liquipediapy.dota2 import Dota2
 from liquipediapy.counterstrike import Counterstrike
 from liquipediapy.leagueoflegends import Leagueoflegends
 from liquipediapy.arenaofvalor import ArenaOfValor
+from liquipediapy.wildrift import WildRift

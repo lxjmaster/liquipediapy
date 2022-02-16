@@ -237,6 +237,7 @@ class Dota2(object):
 				tournament['name'] = values.b.get_text()
 			else:
 				tournament['tier'] = tournament_type
+				tournament['name'] = values.b.get_text()
 
 			try:
 				tournament['logo'] = self.__image_base_url + row.find('div', {"class": "divCell Tournament Header"}).find('img').get('src')
